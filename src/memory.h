@@ -35,7 +35,7 @@ struct Memory_Pane {
   int addr_rect_width;
 };
 
-void new_mem_pane(struct Memory_Pane* mem, int starty, int startx);
+struct Memory_Pane* memory_pane_new(int starty, int startx);
 void mem_move_left(struct Memory_Pane* mem);
 void mem_move_right(struct Memory_Pane* mem);
 void mem_move_up(struct Memory_Pane* mem);

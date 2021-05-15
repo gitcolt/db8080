@@ -3,7 +3,8 @@
 
 #include <stdlib.h>
 
-void new_mem_pane(struct Memory_Pane* mem, int starty, int startx) {
+struct Memory_Pane* memory_pane_new(int starty, int startx) {
+  struct Memory_Pane* mem = malloc(sizeof(struct Memory_Pane));
   mem->border_height = 1;
   mem->border_width = 2;
   char* filename = "invaders";
@@ -44,7 +45,7 @@ void new_mem_pane(struct Memory_Pane* mem, int starty, int startx) {
   if (mem->bytes_pad == NULL) {
     mvprintw(LINES - 1, 0, "Unable to create memory bytes pad.\n");
     endwin();
-    return;
+    return NULL;
   }
 
   mem->addr_pad = subpad(mem->outer_pad,
@@ -55,7 +56,7 @@ void new_mem_pane(struct Memory_Pane* mem, int starty, int startx) {
   if (mem->addr_pad == NULL) {
     mvprintw(LINES - 1, 0, "Unable to create memory address pad.\n");
     endwin();
-    return;
+    return NULL;
   }
 
   mem->outer_win_starty = starty;
@@ -67,7 +68,7 @@ void new_mem_pane(struct Memory_Pane* mem, int starty, int startx) {
   if (mem->outer_win == NULL) {
     mvprintw(LINES - 1, 0, "Unable to create memory window.\n");
     endwin();
-    return;
+    return NULL;
   }
 
   for (int row = 0; row < fsize/16; row++) {
@@ -91,6 +92,8 @@ void new_mem_pane(struct Memory_Pane* mem, int starty, int startx) {
 
   wmove(mem->outer_win, mem->border_height, mem->border_width + mem->addr_rect_width + 1);
   wrefresh(mem->outer_win);
+
+  return mem;
 }
 
 void mem_move_left(struct Memory_Pane* mem) {

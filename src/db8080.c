@@ -25,8 +25,7 @@ void init() {
 int main() {
   init();
 
-  struct Memory_Pane mem;
-  new_mem_pane(&mem, 1, 40);
+  struct Memory_Pane* mem = memory_pane_new(1, 40);
 
   char* filename = "invaders";
   FILE* file = fopen(filename, "rb");
@@ -42,7 +41,7 @@ int main() {
   fread(bytes, fsize, 1, file);
   fclose(file);
 
-  load_memory(&mem, bytes, fsize);
+  load_memory(mem, bytes, fsize);
 
   struct Flags_Pane* flags = flags_pane_new(0, 0);
 
@@ -51,17 +50,17 @@ int main() {
     switch(ch) {
       case KEY_UP:
       case 'k':
-        mem_move_up(&mem);
+        mem_move_up(mem);
         break;
       case KEY_DOWN:
       case 'j':
-        mem_move_down(&mem);
+        mem_move_down(mem);
         break;
       case 'l':
-        mem_move_right(&mem);
+        mem_move_right(mem);
         break;
       case 'h':
-        mem_move_left(&mem);
+        mem_move_left(mem);
         break;
     }
   }
