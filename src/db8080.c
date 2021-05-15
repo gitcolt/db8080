@@ -1,5 +1,6 @@
 #include "colors.h"
 #include "memory.h"
+#include "flags.h"
 
 #include <ncurses.h>
 
@@ -15,6 +16,9 @@ void init() {
   start_color();
   use_default_colors(); // ?
   init_pair(RED, COLOR_RED, -1);
+  init_pair(MAGENTA, COLOR_MAGENTA, -1);
+  init_pair(WHITE, COLOR_WHITE, -1);
+  init_pair(CYAN, COLOR_CYAN, -1);
   refresh(); // Do I need to call this?
 }
 
@@ -23,6 +27,24 @@ int main() {
 
   struct Memory_Pane mem;
   new_mem_pane(&mem, 1, 40);
+
+  char* filename = "invaders";
+  FILE* file = fopen(filename, "rb");
+  if (file == NULL) {
+    printf("Unable to open $s\n", filename);
+    fflush(stdout);
+    exit(1);
+  }
+  fseek(file, 0, SEEK_END);
+  long fsize = ftell(file);
+  fseek(file, 0, SEEK_SET);
+  unsigned char* bytes = malloc(MAX_BYTES);
+  fread(bytes, fsize, 1, file);
+  fclose(file);
+
+  load_memory(&mem, bytes, fsize);
+
+  struct Flags_Pane* flags = flags_pane_new(0, 0);
 
   int ch;
   while (ch = getch()) {

@@ -72,10 +72,8 @@ void new_mem_pane(struct Memory_Pane* mem, int starty, int startx) {
 
   for (int row = 0; row < fsize/16; row++) {
     wprintw(mem->addr_pad, "%07X\n", row * 16);
-    for (int i = 0; i < 16; i++) {
-      wprintw(mem->bytes_pad, "%02X ", *(mem->bytes + (row * 16) + i));
-    }
   }
+
   wattron(mem->outer_win, COLOR_PAIR(RED));
   box(mem->outer_win, 0, 0);
   wattroff(mem->outer_win, COLOR_PAIR(RED));
@@ -158,3 +156,22 @@ void mem_scroll_down(struct Memory_Pane* mem) {
     wrefresh(mem->outer_win);
   }
 }
+
+void load_memory(struct Memory_Pane* mem, unsigned char* bytes, size_t size) {
+  if (size > MAX_BYTES)
+    return;
+  for (int row = 0; row < size/16; row++) {
+    for (int i = 0; i < 16; i++) {
+      wprintw(mem->bytes_pad, "%02X ", *(bytes + (row * 16) + i));
+    }
+  }
+  prefresh(mem->outer_pad,
+           mem->outer_pad_content_starty,
+           mem->outer_pad_content_startx,
+           mem->outer_win_starty + mem->border_height,
+           mem->outer_win_startx + mem->border_width,
+           mem->outer_win_starty + mem->border_height + mem->outer_pad_rect_height,
+           mem->outer_win_startx + mem->border_width + mem->outer_pad_rect_width);
+  wrefresh(mem->outer_win);
+}
+
