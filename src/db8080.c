@@ -51,6 +51,8 @@ int main() {
 
   load_memory(mem, bytes, fsize);
 
+  update_byte(mem, 'x', 1);
+
   int ch;
   while (ch = getch()) {
     switch(ch) {

@@ -125,8 +125,6 @@ void mem_move_right(struct Memory_Pane* mem) {
 }
 
 void mem_move_up(struct Memory_Pane* mem) {
-  mvprintw(LINES -1, 0, "%d, %d", cursory, cursorx);
-  refresh();
   if (cursory <= mem->outer_pad_content_starty)
     mem_scroll_up(mem);
   if (cursory > 0) {
@@ -137,7 +135,7 @@ void mem_move_up(struct Memory_Pane* mem) {
 }
 
 void mem_move_down(struct Memory_Pane* mem) {
-  if (cursory >= mem->bytes_rect_height)
+  if (cursory >= mem->outer_pad_content_starty + mem->outer_pad_rect_height)
     mem_scroll_down(mem);
   if (cursory < mem->outer_pad_content_height - 1) {
     mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_BOLD, -1, NULL);
@@ -171,5 +169,14 @@ void load_memory(struct Memory_Pane* mem, unsigned char* bytes, size_t size) {
   mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_STANDOUT, -1, NULL);
 
   refresh_bytes(mem, mem->outer_pad_content_starty, mem->outer_pad_content_startx);
+}
+
+int update_byte(struct Memory_Pane* mem, char ch, size_t off) {
+  if (off > mem->bytes_size - 1)
+    return -1;
+  mem->bytes[off] = 0xFF;
+  mvwprintw(mem->bytes_pad, off/16, (off % 16) * 3, "%02X", mem->bytes[off]);
+  refresh_bytes(mem, 0, 0);
+  return 0;
 }
 

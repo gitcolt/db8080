@@ -43,5 +43,6 @@ void mem_move_down(struct Memory_Pane* mem);
 void mem_scroll_up(struct Memory_Pane* mem);
 void mem_scroll_down(struct Memory_Pane* mem);
 void load_memory(struct Memory_Pane* mem, unsigned char* bytes, size_t size);
+int update_byte(struct Memory_Pane* mem, char ch, size_t off);
 
 #endif
