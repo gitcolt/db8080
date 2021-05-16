@@ -1,7 +1,21 @@
 #include "colors.h"
 #include "memory.h"
+#include "box.h"
 
 #include <stdlib.h>
+
+static int cursory;
+static int cursorx;
+
+void refresh_bytes(struct Memory_Pane* mem, int content_starty, int content_startx) {
+  prefresh(mem->outer_pad,
+    content_starty,
+    content_startx,
+    mem->outer_win_starty + mem->border_height,
+    mem->outer_win_startx + mem->border_width,
+    mem->outer_win_starty + mem->border_height + mem->outer_pad_rect_height,
+    mem->outer_win_startx + mem->border_width + mem->outer_pad_rect_width);
+}
 
 struct Memory_Pane* memory_pane_new(int starty, int startx) {
   struct Memory_Pane* mem = malloc(sizeof(struct Memory_Pane));
@@ -77,89 +91,69 @@ struct Memory_Pane* memory_pane_new(int starty, int startx) {
   }
   wattroff(mem->addr_pad, A_BOLD);
 
-  wattron(mem->outer_win, COLOR_PAIR(RED));
-  box(mem->outer_win, 0, 0);
-  wattroff(mem->outer_win, COLOR_PAIR(RED));
+  color_box(mem->outer_win, RED);
   mvwprintw(mem->outer_win, 0, 2, "Memory");
   wrefresh(mem->outer_win);
 
   //mvwprintw(mem->outer_win, 0, mem->border_width + mem->addr_rect_width + 1, "0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F");
-  prefresh(mem->outer_pad,
-           mem->outer_pad_content_starty,
-           mem->outer_pad_content_startx,
-           mem->outer_win_starty + mem->border_height,
-           mem->outer_win_startx + mem->border_width,
-           mem->outer_win_starty + mem->border_height + mem->outer_pad_rect_height ,
-           mem->outer_win_startx + mem->border_width + mem->outer_pad_rect_width);
 
-  wmove(mem->outer_win, mem->border_height, mem->border_width + mem->addr_rect_width + 1);
+  refresh_bytes(mem, mem->outer_pad_content_starty, mem->outer_pad_content_startx);
+
   wrefresh(mem->outer_win);
 
   return mem;
 }
 
 void mem_move_left(struct Memory_Pane* mem) {
-  int y, x;
-  getyx(mem->outer_win, y, x);
-  if (x > mem->border_width + mem->addr_rect_width + 1) {
-    wmove(mem->outer_win, y, x - 3);
-    wrefresh(mem->outer_win);
+  int minx = getbegx(mem->bytes_pad);
+  if (cursorx > minx) {
+    mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_BOLD, -1, NULL);
+    cursorx -= 3;
+    mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_STANDOUT, -1, NULL);
+    refresh_bytes(mem, mem->outer_pad_content_starty, mem->outer_pad_content_startx);
   }
 }
 
 void mem_move_right(struct Memory_Pane* mem) {
-  int y, x;
-  getyx(mem->outer_win, y, x);
-  if (x < mem->border_width + mem->addr_rect_width + mem->bytes_rect_width - 2) {
-    wmove(mem->outer_win, y, x + 3);
-    wrefresh(mem->outer_win);
+  int maxx = getmaxx(mem->bytes_pad) + 3;
+  if (cursorx < maxx) {
+    mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_BOLD, -1, NULL);
+    cursorx += 3;
+    mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_STANDOUT, -1, NULL);
+    refresh_bytes(mem, mem->outer_pad_content_starty, mem->outer_pad_content_startx);
   }
 }
 
 void mem_move_up(struct Memory_Pane* mem) {
-  int y, x;
-  getyx(mem->outer_win, y, x);
-  if (y > mem->border_height) {
-    wmove(mem->outer_win, --y, x);
-    wrefresh(mem->outer_win);
-  } else
+  mvprintw(LINES -1, 0, "%d, %d", cursory, cursorx);
+  refresh();
+  if (cursory <= mem->outer_pad_content_starty)
     mem_scroll_up(mem);
+  if (cursory > 0) {
+    mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_BOLD, -1, NULL);
+    mvwchgat(mem->outer_pad, --cursory, cursorx, 2, A_STANDOUT, -1, NULL);
+    refresh_bytes(mem, mem->outer_pad_content_starty, mem->outer_pad_content_startx);
+  }
 }
 
 void mem_move_down(struct Memory_Pane* mem) {
-  int y, x;
-  getyx(mem->outer_win, y, x);
-  if (y < mem->border_height + mem->bytes_rect_height) {
-    wmove(mem->outer_win, ++y, x);
-    wrefresh(mem->outer_win);
-  } else
+  if (cursory >= mem->bytes_rect_height)
     mem_scroll_down(mem);
+  if (cursory < mem->outer_pad_content_height - 1) {
+    mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_BOLD, -1, NULL);
+    mvwchgat(mem->outer_pad, ++cursory, cursorx, 2, A_STANDOUT, -1, NULL);
+    refresh_bytes(mem, mem->outer_pad_content_starty, mem->outer_pad_content_startx);
+  }
 }
 
 void mem_scroll_up(struct Memory_Pane* mem) {
-  if (mem->outer_pad_content_starty > 0) {
-    prefresh(mem->outer_pad,
-             --mem->outer_pad_content_starty,
-             mem->outer_pad_content_startx,
-             mem->outer_win_starty + mem->border_height,
-             mem->outer_win_startx + mem->border_width,
-             mem->outer_win_starty + mem->border_height + mem->outer_pad_rect_height,
-             mem->outer_win_startx + mem->border_width + mem->outer_pad_rect_width);
-    wrefresh(mem->outer_win);
-  }
+  if (mem->outer_pad_content_starty > 0)
+    refresh_bytes(mem, --mem->outer_pad_content_starty, mem->outer_pad_content_startx);
 }
 
 void mem_scroll_down(struct Memory_Pane* mem) {
-  if (mem->outer_pad_content_starty < (mem->bytes_content_height - mem->outer_pad_rect_height - 1)) {
-    prefresh(mem->outer_pad,
-             ++mem->outer_pad_content_starty,
-             mem->outer_pad_content_startx,
-             mem->outer_win_starty + mem->border_height,
-             mem->outer_win_startx + mem->border_width,
-             mem->outer_win_starty + mem->border_height + mem->outer_pad_rect_height,
-             mem->outer_win_startx + mem->border_width + mem->outer_pad_rect_width);
-    wrefresh(mem->outer_win);
-  }
+  if (mem->outer_pad_content_starty < (mem->bytes_content_height - mem->outer_pad_rect_height - 1))
+    refresh_bytes(mem, ++mem->outer_pad_content_starty, mem->outer_pad_content_startx);
 }
 
 void load_memory(struct Memory_Pane* mem, unsigned char* bytes, size_t size) {
@@ -172,13 +166,10 @@ void load_memory(struct Memory_Pane* mem, unsigned char* bytes, size_t size) {
     }
   }
   wattroff(mem->bytes_pad, A_BOLD);
-  prefresh(mem->outer_pad,
-           mem->outer_pad_content_starty,
-           mem->outer_pad_content_startx,
-           mem->outer_win_starty + mem->border_height,
-           mem->outer_win_startx + mem->border_width,
-           mem->outer_win_starty + mem->border_height + mem->outer_pad_rect_height,
-           mem->outer_win_startx + mem->border_width + mem->outer_pad_rect_width);
-  wrefresh(mem->outer_win);
+
+  getbegyx(mem->bytes_pad, cursory, cursorx);
+  mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_STANDOUT, -1, NULL);
+
+  refresh_bytes(mem, mem->outer_pad_content_starty, mem->outer_pad_content_startx);
 }
 

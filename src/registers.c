@@ -1,5 +1,6 @@
 #include "colors.h"
 #include "registers.h"
+#include "box.h"
 
 #include <ncurses.h>
 #include <stdlib.h>
@@ -32,9 +33,7 @@ void set_register(struct Registers_Pane* regs, char ch, int val) {
 struct Registers_Pane* registers_pane_new(int starty, int startx) {
   struct Registers_Pane* regs = malloc(sizeof(struct Registers_Pane));
   regs->win = newwin(15, 23, starty, startx);
-  wattron(regs->win, COLOR_PAIR(YELLOW));
-  box(regs->win, 0, 0);
-  wattroff(regs->win, COLOR_PAIR(YELLOW));
+  color_box(regs->win, YELLOW);
   mvwprintw(regs->win, 0, 2, "Registers");
 
   regs->a_win = derwin(regs->win, 3, 6, 2, 5);
@@ -45,39 +44,25 @@ struct Registers_Pane* registers_pane_new(int starty, int startx) {
   regs->h_win = derwin(regs->win, 3, 6, 11, 5);
   regs->l_win = derwin(regs->win, 3, 6, 11, 12);
 
-  wattron(regs->a_win, COLOR_PAIR(BLUE));
-  box(regs->a_win, 0, 0);
-  wattroff(regs->a_win, COLOR_PAIR(BLUE));
+  color_box(regs->a_win, BLUE);
   wrefresh(regs->a_win);
 
-  wattron(regs->b_win, COLOR_PAIR(BLUE));
-  box(regs->b_win, 0, 0);
-  wattroff(regs->b_win, COLOR_PAIR(BLUE));
+  color_box(regs->b_win, BLUE);
   wrefresh(regs->b_win);
 
-  wattron(regs->c_win, COLOR_PAIR(BLUE));
-  box(regs->c_win, 0, 0);
-  wattroff(regs->c_win, COLOR_PAIR(BLUE));
+  color_box(regs->c_win, BLUE);
   wrefresh(regs->c_win);
 
-  wattron(regs->d_win, COLOR_PAIR(BLUE));
-  box(regs->d_win, 0, 0);
-  wattroff(regs->d_win, COLOR_PAIR(BLUE));
+  color_box(regs->d_win, BLUE);
   wrefresh(regs->d_win);
 
-  wattron(regs->e_win, COLOR_PAIR(BLUE));
-  box(regs->e_win, 0, 0);
-  wattroff(regs->e_win, COLOR_PAIR(BLUE));
+  color_box(regs->e_win, BLUE);
   wrefresh(regs->e_win);
 
-  wattron(regs->h_win, COLOR_PAIR(BLUE));
-  box(regs->h_win, 0, 0);
-  wattroff(regs->h_win, COLOR_PAIR(BLUE));
+  color_box(regs->h_win, BLUE);
   wrefresh(regs->h_win);
 
-  wattron(regs->l_win, COLOR_PAIR(BLUE));
-  box(regs->l_win, 0, 0);
-  wattroff(regs->l_win, COLOR_PAIR(BLUE));
+  color_box(regs->l_win, BLUE);
   wrefresh(regs->l_win);
 
   int y, x;
