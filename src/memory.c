@@ -3,9 +3,7 @@
 #include "box.h"
 
 #include <stdlib.h>
-
-static int cursory;
-static int cursorx;
+#include <stdio.h>
 
 void refresh_bytes(struct Memory_Pane* mem, int content_starty, int content_startx) {
   prefresh(mem->outer_pad,
@@ -106,40 +104,40 @@ struct Memory_Pane* memory_pane_new(int starty, int startx) {
 
 void mem_move_left(struct Memory_Pane* mem) {
   int minx = getbegx(mem->bytes_pad);
-  if (cursorx > minx) {
-    mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_BOLD, -1, NULL);
-    cursorx -= 3;
-    mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_STANDOUT, -1, NULL);
+  if (mem->cursorx > minx) {
+    mvwchgat(mem->outer_pad, mem->cursory, mem->cursorx, 2, A_BOLD, -1, NULL);
+    mem->cursorx -= 3;
+    mvwchgat(mem->outer_pad, mem->cursory, mem->cursorx, 2, A_STANDOUT, -1, NULL);
     refresh_bytes(mem, mem->outer_pad_content_starty, mem->outer_pad_content_startx);
   }
 }
 
 void mem_move_right(struct Memory_Pane* mem) {
   int maxx = getmaxx(mem->bytes_pad) + 3;
-  if (cursorx < maxx) {
-    mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_BOLD, -1, NULL);
-    cursorx += 3;
-    mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_STANDOUT, -1, NULL);
+  if (mem->cursorx < maxx) {
+    mvwchgat(mem->outer_pad, mem->cursory, mem->cursorx, 2, A_BOLD, -1, NULL);
+    mem->cursorx += 3;
+    mvwchgat(mem->outer_pad, mem->cursory, mem->cursorx, 2, A_STANDOUT, -1, NULL);
     refresh_bytes(mem, mem->outer_pad_content_starty, mem->outer_pad_content_startx);
   }
 }
 
 void mem_move_up(struct Memory_Pane* mem) {
-  if (cursory <= mem->outer_pad_content_starty)
+  if (mem->cursory <= mem->outer_pad_content_starty)
     mem_scroll_up(mem);
-  if (cursory > 0) {
-    mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_BOLD, -1, NULL);
-    mvwchgat(mem->outer_pad, --cursory, cursorx, 2, A_STANDOUT, -1, NULL);
+  if (mem->cursory > 0) {
+    mvwchgat(mem->outer_pad, mem->cursory, mem->cursorx, 2, A_BOLD, -1, NULL);
+    mvwchgat(mem->outer_pad, --mem->cursory, mem->cursorx, 2, A_STANDOUT, -1, NULL);
     refresh_bytes(mem, mem->outer_pad_content_starty, mem->outer_pad_content_startx);
   }
 }
 
 void mem_move_down(struct Memory_Pane* mem) {
-  if (cursory >= mem->outer_pad_content_starty + mem->outer_pad_rect_height)
+  if (mem->cursory >= mem->outer_pad_content_starty + mem->outer_pad_rect_height)
     mem_scroll_down(mem);
-  if (cursory < mem->outer_pad_content_height - 1) {
-    mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_BOLD, -1, NULL);
-    mvwchgat(mem->outer_pad, ++cursory, cursorx, 2, A_STANDOUT, -1, NULL);
+  if (mem->cursory < mem->outer_pad_content_height - 1) {
+    mvwchgat(mem->outer_pad, mem->cursory, mem->cursorx, 2, A_BOLD, -1, NULL);
+    mvwchgat(mem->outer_pad, ++mem->cursory, mem->cursorx, 2, A_STANDOUT, -1, NULL);
     refresh_bytes(mem, mem->outer_pad_content_starty, mem->outer_pad_content_startx);
   }
 }
@@ -165,18 +163,57 @@ void load_memory(struct Memory_Pane* mem, unsigned char* bytes, size_t size) {
   }
   wattroff(mem->bytes_pad, A_BOLD);
 
-  getbegyx(mem->bytes_pad, cursory, cursorx);
-  mvwchgat(mem->outer_pad, cursory, cursorx, 2, A_STANDOUT, -1, NULL);
-
+  getbegyx(mem->bytes_pad, mem->cursory, mem->cursorx);
+  mvwchgat(mem->outer_pad, mem->cursory, mem->cursorx, 2, A_STANDOUT, -1, NULL);
   refresh_bytes(mem, mem->outer_pad_content_starty, mem->outer_pad_content_startx);
 }
 
-int update_byte(struct Memory_Pane* mem, char ch, size_t off) {
-  if (off > mem->bytes_size - 1)
+void edit_byte(struct Memory_Pane* mem, int row, int col, char ch) {
+  static int is_waiting_for_input = 0;
+  static char buf[] = "00";
+
+  // Break out if directional character
+  if (ch == 'h' || ch == 'j' || ch == 'k' || ch == 'l') {
+    is_waiting_for_input = 0;
+    ungetch(ch);
+    return;
+  }
+
+  // Ignore non-hex, non-directional characters
+  if ( !(ch >= '0' && ch <= '9') &&
+       !(ch >= 'a' && ch <= 'f')    ) {
+    edit_byte(mem, row, col, getch());
+    return;
+  }
+
+  if (!is_waiting_for_input) {
+    buf[0] = ch;
+    buf[1] = '0';
+  } else
+    buf[1] = ch;
+
+  int hexval;
+  sscanf(buf, "%02X", &hexval);
+
+  int off = row * 16 + col;
+  mem->bytes[off] = hexval;
+  update_bytes(mem, off, 1);
+  is_waiting_for_input = !is_waiting_for_input;
+  if (is_waiting_for_input)
+    edit_byte(mem, row, col, getch());
+}
+
+int update_bytes(struct Memory_Pane* mem, size_t off, int count) {
+
+  if (off + count > mem->bytes_size)
     return -1;
-  mem->bytes[off] = 0xFF;
-  mvwprintw(mem->bytes_pad, off/16, (off % 16) * 3, "%02X", mem->bytes[off]);
-  refresh_bytes(mem, 0, 0);
+  while (count-- > 0) {
+    wattron(mem->bytes_pad, A_REVERSE);
+    mvwprintw(mem->bytes_pad, off/16, (off % 16) * 3, "%2X", mem->bytes[off]);
+    wattroff(mem->bytes_pad, A_REVERSE);
+    off++;
+  }
+  refresh_bytes(mem, mem->outer_pad_content_starty, mem->outer_pad_content_startx);
   return 0;
 }
 

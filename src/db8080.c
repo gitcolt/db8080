@@ -51,8 +51,6 @@ int main() {
 
   load_memory(mem, bytes, fsize);
 
-  update_byte(mem, 'x', 1);
-
   int ch;
   while (ch = getch()) {
     switch(ch) {
@@ -70,6 +68,14 @@ int main() {
       case 'h':
         mem_move_left(mem);
         break;
+      case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+      case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
+        {
+        int row = mem->cursory;
+        int col = (mem->cursorx - mem->addr_rect_width) / 3;
+        edit_byte(mem, row, col, ch);
+        break;
+        }
     }
   }
 

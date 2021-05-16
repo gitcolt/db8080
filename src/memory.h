@@ -8,6 +8,8 @@
 struct Memory_Pane {
   int border_height;
   int border_width;
+  int cursory;
+  int cursorx;
   WINDOW* outer_win;
   int outer_win_starty;
   int outer_win_startx;
@@ -43,6 +45,7 @@ void mem_move_down(struct Memory_Pane* mem);
 void mem_scroll_up(struct Memory_Pane* mem);
 void mem_scroll_down(struct Memory_Pane* mem);
 void load_memory(struct Memory_Pane* mem, unsigned char* bytes, size_t size);
-int update_byte(struct Memory_Pane* mem, char ch, size_t off);
+void edit_byte(struct Memory_Pane* mem, int row, int col, char ch);
+int update_bytes(struct Memory_Pane* mem, size_t off, int count);
 
 #endif
