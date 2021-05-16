@@ -71,9 +71,11 @@ struct Memory_Pane* memory_pane_new(int starty, int startx) {
     return NULL;
   }
 
+  wattron(mem->addr_pad, A_BOLD);
   for (int row = 0; row < fsize/16; row++) {
     wprintw(mem->addr_pad, "%07X\n", row * 16);
   }
+  wattroff(mem->addr_pad, A_BOLD);
 
   wattron(mem->outer_win, COLOR_PAIR(RED));
   box(mem->outer_win, 0, 0);
@@ -163,11 +165,13 @@ void mem_scroll_down(struct Memory_Pane* mem) {
 void load_memory(struct Memory_Pane* mem, unsigned char* bytes, size_t size) {
   if (size > MAX_BYTES)
     return;
+  wattron(mem->bytes_pad, A_BOLD);
   for (int row = 0; row < size/16; row++) {
     for (int i = 0; i < 16; i++) {
       wprintw(mem->bytes_pad, "%02X ", *(bytes + (row * 16) + i));
     }
   }
+  wattroff(mem->bytes_pad, A_BOLD);
   prefresh(mem->outer_pad,
            mem->outer_pad_content_starty,
            mem->outer_pad_content_startx,

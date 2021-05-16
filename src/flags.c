@@ -20,8 +20,10 @@ void set_flag(struct Flags_Pane* flags, char ch, int on) {
       win = flags->c_win; break;
   }
   wattron(win, on ? COLOR_PAIR(RED) : COLOR_PAIR(WHITE));
+  wattron(win, A_BOLD);
   mvwaddch(win, 1, 1, toupper(ch));
   wattroff(win, on ? COLOR_PAIR(RED) : COLOR_PAIR(WHITE));
+  wattroff(win, A_BOLD);
   wrefresh(win);
 }
 
@@ -58,7 +60,7 @@ struct Flags_Pane* flags_pane_new (int starty, int startx) {
   set_flag(flags, 'z', 0);
   set_flag(flags, 'a', 0);
   set_flag(flags, 'p', 0);
-  set_flag(flags, 'c', 0);
+  set_flag(flags, 'c', 1);
 
   wrefresh(flags->win);
 

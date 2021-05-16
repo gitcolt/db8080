@@ -23,7 +23,9 @@ void set_register(struct Registers_Pane* regs, char ch, int val) {
       win = regs->l_win; break;
   }
 
+  wattron(win, A_BOLD | COLOR_PAIR(GREEN));
   mvwprintw(win, 1, 2, "%02X", val);
+  wattroff(win, A_BOLD| COLOR_PAIR(GREEN));
   wrefresh(win);
 }
 
