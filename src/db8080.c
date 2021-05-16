@@ -19,6 +19,9 @@ void init() {
   init_pair(MAGENTA, COLOR_MAGENTA, -1);
   init_pair(WHITE, COLOR_WHITE, -1);
   init_pair(CYAN, COLOR_CYAN, -1);
+  init_pair(YELLOW, COLOR_YELLOW, -1);
+  init_pair(BLUE, COLOR_BLUE, -1);
+  init_pair(GREEN, COLOR_GREEN, -1);
   refresh(); // Do I need to call this?
 }
 
@@ -44,6 +47,7 @@ int main() {
   load_memory(mem, bytes, fsize);
 
   struct Flags_Pane* flags = flags_pane_new(0, 0);
+  struct Registers_Pane* regs = registers_pane_new(10, 0);
 
   int ch;
   while (ch = getch()) {
