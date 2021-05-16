@@ -29,19 +29,19 @@ void set_register(struct Registers_Pane* regs, char ch, int val) {
 
 struct Registers_Pane* registers_pane_new(int starty, int startx) {
   struct Registers_Pane* regs = malloc(sizeof(struct Registers_Pane));
-  regs->win = newwin(14, 22, starty, startx);
+  regs->win = newwin(15, 23, starty, startx);
   wattron(regs->win, COLOR_PAIR(YELLOW));
   box(regs->win, 0, 0);
   wattroff(regs->win, COLOR_PAIR(YELLOW));
   mvwprintw(regs->win, 0, 2, "Registers");
 
-  regs->a_win = derwin(regs->win, 3, 6, 1, 5);
-  regs->b_win = derwin(regs->win, 3, 6, 4, 5);
-  regs->c_win = derwin(regs->win, 3, 6, 4, 11);
-  regs->d_win = derwin(regs->win, 3, 6, 7, 5);
-  regs->e_win = derwin(regs->win, 3, 6, 7, 11);
-  regs->h_win = derwin(regs->win, 3, 6, 10, 5);
-  regs->l_win = derwin(regs->win, 3, 6, 10, 11);
+  regs->a_win = derwin(regs->win, 3, 6, 2, 5);
+  regs->b_win = derwin(regs->win, 3, 6, 5, 5);
+  regs->c_win = derwin(regs->win, 3, 6, 5, 12);
+  regs->d_win = derwin(regs->win, 3, 6, 8, 5);
+  regs->e_win = derwin(regs->win, 3, 6, 8, 12);
+  regs->h_win = derwin(regs->win, 3, 6, 11, 5);
+  regs->l_win = derwin(regs->win, 3, 6, 11, 12);
 
   wattron(regs->a_win, COLOR_PAIR(BLUE));
   box(regs->a_win, 0, 0);

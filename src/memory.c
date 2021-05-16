@@ -5,7 +5,7 @@
 
 struct Memory_Pane* memory_pane_new(int starty, int startx) {
   struct Memory_Pane* mem = malloc(sizeof(struct Memory_Pane));
-  mem->border_height = 1;
+  mem->border_height = 2;
   mem->border_width = 2;
   char* filename = "invaders";
   FILE* file = fopen(filename, "rb");

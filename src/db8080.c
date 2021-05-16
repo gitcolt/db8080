@@ -1,6 +1,7 @@
 #include "colors.h"
 #include "memory.h"
 #include "flags.h"
+#include "registers.h"
 
 #include <ncurses.h>
 
@@ -28,7 +29,7 @@ void init() {
 int main() {
   init();
 
-  struct Memory_Pane* mem = memory_pane_new(1, 40);
+  struct Memory_Pane* mem = memory_pane_new(1, 25);
 
   char* filename = "invaders";
   FILE* file = fopen(filename, "rb");
@@ -37,6 +38,7 @@ int main() {
     fflush(stdout);
     exit(1);
   }
+
   fseek(file, 0, SEEK_END);
   long fsize = ftell(file);
   fseek(file, 0, SEEK_SET);
@@ -44,10 +46,10 @@ int main() {
   fread(bytes, fsize, 1, file);
   fclose(file);
 
-  load_memory(mem, bytes, fsize);
+  struct Flags_Pane* flags = flags_pane_new(1, 1);
+  struct Registers_Pane* regs = registers_pane_new(6, 1);
 
-  struct Flags_Pane* flags = flags_pane_new(0, 0);
-  struct Registers_Pane* regs = registers_pane_new(10, 0);
+  load_memory(mem, bytes, fsize);
 
   int ch;
   while (ch = getch()) {
