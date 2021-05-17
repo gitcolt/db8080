@@ -30,6 +30,8 @@ int main() {
   init();
 
   struct Memory_Pane* mem = memory_pane_new(1, 25);
+  struct Flags_Pane* flags = flags_pane_new(1, 1);
+  struct Registers_Pane* regs = registers_pane_new(6, 1);
 
   char* filename = "invaders";
   FILE* file = fopen(filename, "rb");
@@ -38,16 +40,12 @@ int main() {
     fflush(stdout);
     exit(1);
   }
-
   fseek(file, 0, SEEK_END);
   long fsize = ftell(file);
   fseek(file, 0, SEEK_SET);
   unsigned char* bytes = malloc(MAX_BYTES);
   fread(bytes, fsize, 1, file);
   fclose(file);
-
-  struct Flags_Pane* flags = flags_pane_new(1, 1);
-  struct Registers_Pane* regs = registers_pane_new(6, 1);
 
   load_memory(mem, bytes, fsize);
 
@@ -79,6 +77,5 @@ int main() {
     }
   }
 
-  getch(); // Wait for user input
   endwin();
 }

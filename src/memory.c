@@ -171,10 +171,14 @@ void load_memory(struct Memory_Pane* mem, unsigned char* bytes, size_t size) {
 void edit_byte(struct Memory_Pane* mem, int row, int col, char ch) {
   static int is_waiting_for_input = 0;
   static char buf[] = "00";
+  static char old[] = "00";
+
+  int off = row * 16 + col;
 
   // Break out if directional character
   if (ch == 'h' || ch == 'j' || ch == 'k' || ch == 'l') {
     is_waiting_for_input = 0;
+    mvwprintw(mem->bytes_pad, off/16, (off % 16) * 3, "%s", old);
     ungetch(ch);
     return;
   }
@@ -188,14 +192,14 @@ void edit_byte(struct Memory_Pane* mem, int row, int col, char ch) {
 
   if (!is_waiting_for_input) {
     buf[0] = ch;
-    buf[1] = '0';
+    buf[1] = ' ';
+    sprintf(old, "%02X", mem->bytes[off]);
   } else
     buf[1] = ch;
 
   int hexval;
   sscanf(buf, "%02X", &hexval);
 
-  int off = row * 16 + col;
   mem->bytes[off] = hexval;
   update_bytes(mem, off, 1);
   is_waiting_for_input = !is_waiting_for_input;
